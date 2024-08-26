@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "./";
+
+package author;
+
+service ExampleService {
+  rpc Example(ExampleRequest) returns (ExampleResponse);
+}
+
+message ExampleRequest {
+  int64 id = 1;
+}
+
+message ExampleResponse {
+  int64 id = 1;
+  string name = 2;
+}
