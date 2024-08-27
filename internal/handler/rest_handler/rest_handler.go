@@ -6,9 +6,9 @@ import (
 	"github.com/adityaeka26/go-codebase/internal/middleware"
 	"github.com/adityaeka26/go-codebase/internal/usecase"
 	pkgError "github.com/adityaeka26/go-pkg/error"
-	"github.com/adityaeka26/go-pkg/helper"
+	"github.com/adityaeka26/go-pkg/helper/echo_wrapper"
 	pkgValidator "github.com/adityaeka26/go-pkg/validator"
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
 )
 
 type restHandler struct {
@@ -17,7 +17,7 @@ type restHandler struct {
 }
 
 func InitRestHandler(
-	app *fiber.App,
+	app *echo.Echo,
 	config *config.EnvConfig,
 	middleware middleware.Middleware,
 	exampleUsecase usecase.ExampleUsecase,
@@ -28,21 +28,21 @@ func InitRestHandler(
 		validator:      validator,
 	}
 
-	app.Get("/example/:id", handler.Example)
+	app.GET("/example/:id", handler.Example)
 }
 
-func (h *restHandler) Example(c *fiber.Ctx) error {
+func (h *restHandler) Example(c echo.Context) error {
 	req := &dto.ExampleRequest{}
-	if err := c.ParamsParser(req); err != nil {
-		return helper.RespError(c, pkgError.BadRequest(err.Error()))
+	if err := c.Bind(req); err != nil {
+		return echo_wrapper.RespError(c, pkgError.BadRequest(err.Error()))
 	}
 	if err := h.validator.Validate(req); err != nil {
-		return helper.RespError(c, err)
+		return echo_wrapper.RespError(c, err)
 	}
 
-	resp, err := h.exampleUsecase.Example(c.Context(), *req)
+	resp, err := h.exampleUsecase.Example(c.Request().Context(), *req)
 	if err != nil {
-		return helper.RespError(c, err)
+		return echo_wrapper.RespError(c, err)
 	}
-	return helper.RespSuccess(c, resp, "get example success")
+	return echo_wrapper.RespSuccess(c, resp, "get example success")
 }

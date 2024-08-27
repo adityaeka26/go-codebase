@@ -8,12 +8,12 @@ import (
 	"github.com/adityaeka26/go-codebase/internal/handler/rest_handler"
 	"github.com/adityaeka26/go-codebase/internal/middleware"
 	"github.com/adityaeka26/go-codebase/internal/usecase"
-	"github.com/adityaeka26/go-pkg/graceful_shutdown"
+	graceful_shutdown "github.com/adityaeka26/go-pkg/echo_graceful_shutdown"
 	"github.com/adityaeka26/go-pkg/logger"
 	"github.com/adityaeka26/go-pkg/postgres"
 	pkgValidator "github.com/adityaeka26/go-pkg/validator"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
 )
 
 func ServeREST(
@@ -28,7 +28,7 @@ func ServeREST(
 		GracefulPeriod: time.Duration(config.GracefulPeriod) * time.Second,
 	}
 
-	app := fiber.New()
+	app := echo.New()
 
 	gs.Enable(app)
 	gs.Register(logger, postgres)
@@ -43,7 +43,10 @@ func ServeREST(
 		},
 	)
 
-	app.Listen(fmt.Sprintf(":%s", config.RestPort))
+	err := app.Start(fmt.Sprintf(":%s", config.RestPort))
+	if err != nil {
+		return err
+	}
 
 	gs.Cleanup()
 
